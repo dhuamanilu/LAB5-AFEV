@@ -31,18 +31,27 @@ class Estante
         (Estante_id := eid;
         contents := vas;
         capacidad := n;);
-        public AgregarVaso: Vasos ==> bool
+
+        public AgregarVaso : Vasos ==> bool
         AgregarVaso(vaso) ==
-        (if ExisteVasoConMismoId(vaso) then
-        return false
-        else
-        (contents := contents union {vaso};
-        return true)
-        );
+          (if ExisteVasoConMismoId(vaso) or ExcedeCapacidad() or (not vaso.material = <Caliente> and not AlMenosUnVasoCaliente()) then
+            return false
+          else
+            (contents := contents union {vaso};
+            return true));
         
         public ExisteVasoConMismoId: Vasos ==> bool
         ExisteVasoConMismoId(vaso) ==
         (return exists e in set contents & e.vid = vaso.vid);
+
+        private ExcedeCapacidad : () ==> bool
+        ExcedeCapacidad() ==
+        (return card contents + 1 > capacidad);
+
+        private AlMenosUnVasoCaliente : () ==> bool
+        AlMenosUnVasoCaliente() ==
+        (return exists e in set contents & e.material = <Caliente>);
+
 end Estante
 
 class Store
