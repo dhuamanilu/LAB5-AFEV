@@ -1,77 +1,123 @@
 class Vasos
-    
+    types
+        public VId = token;
+        public MaterialType = <Caliente> | <Tibio> | <Frio>;
+
     instance variables
         public vid : VId;
         material : MaterialType;
         cantidad : real;
-    
-    types
-        public MaterialType = <Caliente> | <Tibio> | <Frio>;
-        public VId=token;
 
     operations
         public Vasos : VId * MaterialType * real ==> Vasos
         Vasos(id,mater,cant)==
-        (vid := id;
-        material := mater;
-        cantidad := cant;);
-
+        (
+            vid := id;
+            material := mater;
+            cantidad := cant;
+        );
 end Vasos
 
 class Estante
     types
         public Eid = token;
+
     instance variables
         public Estante_id : Eid;
         public contents : set of Vasos;
         public capacidad : nat;
+
     operations
-        public Estante : Eid*set of Vasos*nat ==> Estante
+        public Estante : Eid * set of Vasos * nat ==> Estante
         Estante(eid,vas,n)==
-        (Estante_id := eid;
-        contents := vas;
-        capacidad := n;);
+        (
+            Estante_id := eid;
+            contents := vas;
+            capacidad := n;
+        );
 
         public AgregarVaso : Vasos ==> bool
-        AgregarVaso(vaso) ==
-          (if ExisteVasoConMismoId(vaso) or ExcedeCapacidad() or (not vaso.material = <Caliente> and not AlMenosUnVasoCaliente()) then
-            return false
-          else
-            (contents := contents union {vaso};
-            return true));
+        AgregarVaso(vaso) == 
+        (
+            if ExisteVasoConMismoId(vaso) or ExcedeCapacidad() or 
+            (not vaso.material = <Caliente> and not AlMenosUnVasoCaliente()) then
+                return false
+            else
+                (
+                    contents := contents union {vaso};
+                    return true
+                )
+        );
         
         public ExisteVasoConMismoId: Vasos ==> bool
-        ExisteVasoConMismoId(vaso) ==
-        (return exists e in set contents & e.vid = vaso.vid);
+        ExisteVasoConMismoId(vaso) == 
+        (
+            return exists e in set contents & e.vid = vaso.vid
+        );
 
         private ExcedeCapacidad : () ==> bool
-        ExcedeCapacidad() ==
-        (return card contents + 1 > capacidad);
+        ExcedeCapacidad() == 
+        (
+            return card contents + 1 > capacidad
+        );
 
         private AlMenosUnVasoCaliente : () ==> bool
-        AlMenosUnVasoCaliente() ==
-        (return exists e in set contents & e.material = <Caliente>);
+        AlMenosUnVasoCaliente() == 
+        (
+            return exists e in set contents & e.material = <Caliente>
+        );
 
+        -- Nueva operación para obtener los IDs de todos los vasos en un estante
+        public GetIdsVasos : () ==> set of Vasos`VId
+        GetIdsVasos() == 
+        (
+            dcl ids : set of Vasos`VId := {};
+            for all vaso in set contents do
+                ids := ids union {vaso.vid};
+            return ids;
+        );
+
+        -- Nueva operación para verificar si el estante está lleno
+        public EstaLleno : () ==> bool
+        EstaLleno() == 
+        (
+            return card contents = capacidad;
+        );
 end Estante
 
 class Store
     instance variables
         store : set of Estante;
+
     operations
         public Store: set of Estante ==> Store
-        Store(estantes) ==
-        (store := estantes;);
+        Store(estantes) == (store := estantes);
 
         public AgregarEstante: Estante ==> bool
-        AgregarEstante(estante) ==
-        (if ExisteEstanteMismoId(estante) then
-        return false
-        else
-        (store := store union {estante};
-        return true) );
+        AgregarEstante(estante) == 
+        (
+            if ExisteEstanteMismoId(estante) then
+                return false
+            else
+                (
+                    store := store union {estante};
+                    return true
+                )
+        );
 
         public ExisteEstanteMismoId: Estante ==> bool
-        ExisteEstanteMismoId(estante) ==
-        (return exists e in set store & e.Estante_id = estante.Estante_id);
-        
+        ExisteEstanteMismoId(estante) == 
+        (
+            return exists e in set store & e.Estante_id = estante.Estante_id
+        );
+
+        -- Nueva operación para obtener todos los IDs de vasos en la tienda
+        public GetAllId: () ==> set of Vasos`VId
+        GetAllId() == 
+        (
+            dcl idVasos : set of Vasos`VId := {};
+            for all estante in set store do
+                idVasos := idVasos union estante.GetIdsVasos();
+            return idVasos;
+        );
 end Store
